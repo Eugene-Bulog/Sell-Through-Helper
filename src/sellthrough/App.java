@@ -6,7 +6,7 @@ public class App {
 	
 	public static void main (String[] args) {
 		try {
-			new Reader().readSheet(args[0]);
+			new Reader(args[0]).readWeeklySheet();
 		} catch (IOException e) {
 			System.out.println("Error loading sell through sheet");
 		}

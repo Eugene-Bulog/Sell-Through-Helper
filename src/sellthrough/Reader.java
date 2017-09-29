@@ -10,22 +10,50 @@ public class Reader {
  * @author Eugene Bulog
  */
 	
+	// Strings containing the paths to the sheets
+	private String _weeklyPath;
+	
+	// Ints relating to the column numbers of the important data
+	private int _sohCol;
+	private int _wk1Col;
+	private int _codeCol;
+	private int _descCol;
+	
 	/**
-	 * Void for reading the sell through spreadsheet and saving the input stream
+	 * Constructor for Reader class
+	 * @param weeklyPath The path to the weekly sell through report recieved from reseller
+	 */
+	public Reader(String weeklyPath) {
+		_weeklyPath = weeklyPath;
+	}
+	
+	
+	/**
+	 * Void for reading the sell through spreadsheet and saving the data for each product
 	 * to this object's fields
 	 * @throws IOException 
 	 */
-	public void readSheet(String path) throws IOException {
+	public void readWeeklySheet() throws IOException {
 		
 		// Create file reader to read at path and buffered reader to read file reader output
-		FileReader fReader = new FileReader(path);
+		FileReader fReader = new FileReader(_weeklyPath);
 		BufferedReader bReader = new BufferedReader(fReader);
 		
-		String line[] = new String[999];
 		int i = 0;
+		String line = new String();
+		String[][] splitLine = new String[999][30];
 		
-		while ((line[i] = bReader.readLine()) != null) {
-			System.out.println(line[i]);
+		// Reads and saves each line of the sheet
+		while ((line = bReader.readLine()) != null) {
+
+			//Splits around commas
+			String[] split = line.split(",");
+
+			// Fills output array with result of split (any non filled spaces remain null)
+			for(int pos = 0; pos < split.length; pos++) {
+				splitLine[i][pos] = split[pos];
+			}
+			
 			i++;
 		}
 
@@ -33,6 +61,27 @@ public class Reader {
 		bReader.close();
 		fReader.close();
 
+		// Locates and stores the column numbers containing relevant data
+		i = 0;
+		String col;
+		while ((col = splitLine[0][i]) != null) {
+			if (col.contains("ItemCode")) {
+				_codeCol = i;
+			}
+			else if (col.contains("ItemName")) {
+				_descCol = i;
+			}
+			else if (col.contains("WK1")) {
+				_wk1Col = i;
+			}
+			else if (col.contains("SOH")) {
+				_sohCol = i;
+			}
+			i++;
+		}
+		
 			
 	}
+	
+	
 }
