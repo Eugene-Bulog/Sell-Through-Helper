@@ -13,12 +13,6 @@ public class Reader {
 	// Strings containing the paths to the sheets
 	private String _weeklyPath;
 	
-	// Ints relating to the column numbers of the important data
-	private int _sohCol;
-	private int _wk1Col;
-	private int _codeCol;
-	private int _descCol;
-	
 	/**
 	 * Constructor for Reader class
 	 * @param weeklyPath The path to the weekly sell through report recieved from reseller
@@ -61,27 +55,54 @@ public class Reader {
 		bReader.close();
 		fReader.close();
 
-		// Locates and stores the column numbers containing relevant data
-		i = 0;
+		// Create the objects for each line's data
+		saveSKU(splitLine);
+			
+	}
+	
+	
+	/**
+	 * Creates and stores a SKU object for each product in the read file
+	 * @param lines The lines read from the file
+	 */
+	private void saveSKU(String[][] lines) {
+		
+		int i = 0;
 		String col;
-		while ((col = splitLine[0][i]) != null) {
+		
+		int codeCol = 0;
+		int descCol = 0;
+		int wk1Col = 0;
+		int sohCol = 0;
+		
+		// Locates and stores the column numbers containing relevant data
+		while ((col = lines[0][i]) != null) {
 			if (col.contains("ItemCode")) {
-				_codeCol = i;
+				codeCol = i;
 			}
 			else if (col.contains("ItemName")) {
-				_descCol = i;
+				descCol = i;
 			}
 			else if (col.contains("WK1")) {
-				_wk1Col = i;
+				wk1Col = i;
 			}
 			else if (col.contains("SOH")) {
-				_sohCol = i;
+				sohCol = i;
 			}
 			i++;
 		}
 		
+		
+		SKU[] list = new SKU[999]; // placeholder
+		i = 1;
+		// Creates an object for each SKU
+		while ((col = lines[i][0]) != null) {
+			list[i - 1] = new SKU(lines[i][codeCol], lines[i][descCol], 
+					Integer.parseInt(lines[i][wk1Col]), Integer.parseInt(lines[i][sohCol]));
+			i++;
 			
+		}
+		
 	}
-	
 	
 }
