@@ -53,7 +53,7 @@ public class SKU {
 	/**
 	 * @return the current SOH for this SKU
 	 */
-	public int getSHOH() {
+	public int getSOH() {
 		return _soh;
 	}
 

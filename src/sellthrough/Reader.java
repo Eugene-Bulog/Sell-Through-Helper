@@ -14,6 +14,7 @@ public class Reader {
 
 	// Strings containing the paths to the sheets
 	private String _weeklyPath;
+	private String _outPath;
 	
 	private List<SKU> _skuList = new ArrayList<SKU>();
 
@@ -21,8 +22,9 @@ public class Reader {
 	 * Constructor for Reader class
 	 * @param weeklyPath The path to the weekly sell through report recieved from reseller
 	 */
-	public Reader(String weeklyPath) {
+	public Reader(String weeklyPath, String outPath) {
 		_weeklyPath = weeklyPath;
+		_outPath = outPath;
 	}
 
 
@@ -60,7 +62,8 @@ public class Reader {
 		fReader.close();
 
 		// Create the objects for each line's data
-		saveSKU(splitLine);
+		saveSKUs(splitLine);
+		new Writer(_skuList, _outPath).writeOut();
 
 	}
 
@@ -69,7 +72,7 @@ public class Reader {
 	 * Creates and stores a SKU object for each product in the read file
 	 * @param lines The lines read from the file
 	 */
-	private void saveSKU(String[][] lines) {
+	private void saveSKUs(String[][] lines) {
 
 		int i = 0;
 		String col;
