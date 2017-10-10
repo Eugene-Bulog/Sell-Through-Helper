@@ -20,7 +20,8 @@ public class Writer {
 	
 	private List<SKU> _skuList = new ArrayList<SKU>();
 	private String _outPath; // Path to find the output xlsx
-	
+	private File _outFile;
+	private FileInputStream _fis;
 	
 	/**
 	 * Constructor for Writer class
@@ -29,6 +30,9 @@ public class Writer {
 	public Writer(List<SKU> skuList, String outPath) {
 		_skuList = skuList;
 		_outPath = outPath;
+		
+		// Set up file
+		_outFile = new File(_outPath);
 	}
 	
 	
@@ -37,35 +41,79 @@ public class Writer {
 	 */
 	public void writeOut() {
 		
-		// Set up file and input stream
-		File outFile = new File(_outPath);
-		FileInputStream fis;
+		
+		
 		try {
-			fis = new FileInputStream(outFile);
+			_fis = new FileInputStream(_outFile);
 			
 			// set up workbook and sheet
-			XSSFWorkbook outBook = new XSSFWorkbook(fis);
+			XSSFWorkbook outBook = new XSSFWorkbook(_fis);
 			XSSFSheet summarySheet = outBook.getSheetAt(0);
 			
+			
+			
+			
+			
 			// saves values for each sku
-			for (int i = 0; i < _skuList.size(); i++) {
-				Row row = summarySheet.createRow(i);
-				row.createCell(0).setCellValue(_skuList.get(i).getCode());
-				row.createCell(1).setCellValue(_skuList.get(i).getDescription());
-				row.createCell(2).setCellValue(_skuList.get(i).getSOH());
-				row.createCell(3).setCellValue(_skuList.get(i).getWk1Sold());
+			for (int i = 1; i < _skuList.size(); i++) {
+				Row row = summarySheet.getRow(i);
+				if (row == null) {
+					row = summarySheet.createRow(i);
+				}
+				row.createCell(0).setCellValue(_skuList.get(i - 1).getCode());
+				row.createCell(1).setCellValue(_skuList.get(i - 1).getDescription());
+				row.createCell(2).setCellValue(_skuList.get(i - 1).getSOH());
+				row.createCell(4).setCellValue(_skuList.get(i - 1).getWk1Sold());
 			}
 			
 			// write and close
-			FileOutputStream outstream = new FileOutputStream(outFile);
-			outBook.write(outstream);
+			FileOutputStream outStream = new FileOutputStream(_outFile);
+			outBook.write(outStream);
 			outBook.close();
+			_fis.close();
+			outStream.close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		
+	}
+	
+	/**
+	 * Sets up a NEW sheet with the specified name. Adds initial column titles
+	 * @param sheetName The name of the sheet to set up
+	 */
+	private void setUpSheet(String sheetName) {
+		
+		try {
+			
+			_fis = new FileInputStream(_outFile);
+				
+			// set up workbook and sheet
+			XSSFWorkbook outBook = new XSSFWorkbook(_fis);
+			XSSFSheet sheet = outBook.createSheet();
+			outBook.setSheetName(outBook.getSheetIndex(sheet), sheetName);
+				
+			
+			// Set up title rows
+			Row titleRow = sheet.createRow(0);
+			titleRow.createCell(0).setCellValue("SKU");
+			titleRow.createCell(1).setCellValue("Product Description");
+			titleRow.createCell(2).setCellValue("SOH");
+			
+			// write and close
+			FileOutputStream outStream = new FileOutputStream(_outFile);
+			outBook.write(outStream);
+			outBook.close();
+			_fis.close();
+			outStream.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
