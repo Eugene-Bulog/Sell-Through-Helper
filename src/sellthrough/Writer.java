@@ -22,6 +22,8 @@ public class Writer {
 	private String _outPath; // Path to find the output xlsx
 	private File _outFile;
 	private FileInputStream _fis;
+	private int _latestCol = 4;
+	private XSSFWorkbook _outBook;
 	
 	/**
 	 * Constructor for Writer class
@@ -37,39 +39,30 @@ public class Writer {
 	
 	
 	/**
-	 * Writes the sales figures to the external xlsx specified in run configuration
+	 * Writes the sales figures to the external xlsx specified in run configuration.
+	 * All writing methods must be called after _outBook is defined in this method, within
+	 * the try/catch.
 	 */
 	public void writeOut() {
-		
 		
 		
 		try {
 			_fis = new FileInputStream(_outFile);
 			
 			// set up workbook and sheet
-			XSSFWorkbook outBook = new XSSFWorkbook(_fis);
-			XSSFSheet summarySheet = outBook.getSheetAt(0);
-			
-			
-			
+			_outBook = new XSSFWorkbook(_fis);
+			XSSFSheet summarySheet = _outBook.getSheetAt(0);
 			
 			
 			// saves values for each sku
-			for (int i = 1; i < _skuList.size(); i++) {
-				Row row = summarySheet.getRow(i);
-				if (row == null) {
-					row = summarySheet.createRow(i);
-				}
-				row.createCell(0).setCellValue(_skuList.get(i - 1).getCode());
-				row.createCell(1).setCellValue(_skuList.get(i - 1).getDescription());
-				row.createCell(2).setCellValue(_skuList.get(i - 1).getSOH());
-				row.createCell(4).setCellValue(_skuList.get(i - 1).getWk1Sold());
+			for (int i = 0; i < _skuList.size(); i++) {
+				addSkuToSheet(_skuList.get(i),0);
 			}
 			
 			// write and close
 			FileOutputStream outStream = new FileOutputStream(_outFile);
-			outBook.write(outStream);
-			outBook.close();
+			_outBook.write(outStream);
+			_outBook.close();
 			_fis.close();
 			outStream.close();
 			
@@ -82,19 +75,17 @@ public class Writer {
 	}
 	
 	/**
-	 * Sets up a NEW sheet with the specified name. Adds initial column titles
+	 * Sets up a NEW sheet with the specified name. Adds initial column titles.
+	 * Method caller's responsibility to check sheet doesn't already exist
 	 * @param sheetName The name of the sheet to set up
+	 * @return The index of the new sheet
 	 */
-	private void setUpSheet(String sheetName) {
+	private int setUpSheet(String sheetName) {
 		
-		try {
-			
-			_fis = new FileInputStream(_outFile);
-				
-			// set up workbook and sheet
-			XSSFWorkbook outBook = new XSSFWorkbook(_fis);
-			XSSFSheet sheet = outBook.createSheet();
-			outBook.setSheetName(outBook.getSheetIndex(sheet), sheetName);
+			// Create sheet
+			XSSFSheet sheet = _outBook.createSheet();
+			int sheetIndex = _outBook.getSheetIndex(sheet);
+			_outBook.setSheetName(sheetIndex, sheetName);
 				
 			
 			// Set up title rows
@@ -103,17 +94,26 @@ public class Writer {
 			titleRow.createCell(1).setCellValue("Product Description");
 			titleRow.createCell(2).setCellValue("SOH");
 			
-			// write and close
-			FileOutputStream outStream = new FileOutputStream(_outFile);
-			outBook.write(outStream);
-			outBook.close();
-			_fis.close();
-			outStream.close();
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			return sheetIndex;
+		
+	}
+	
+	/**
+	 * Appends the given SKU to the specified sheet
+	 * @param sku The SKU to add
+	 * @param sheetIndex The index of the sheet to add it to
+	 */
+	private void addSkuToSheet(SKU sku, int sheetIndex) {
+		
+		// Get sheet index and last row
+		XSSFSheet sheet = _outBook.getSheetAt(sheetIndex);
+		Row row = sheet.createRow(sheet.getLastRowNum() + 1);
+		
+		// Appends SKU to sheet
+		row.createCell(0).setCellValue(sku.getCode());
+		row.createCell(1).setCellValue(sku.getDescription());
+		row.createCell(2).setCellValue(sku.getSOH());
+		row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
 		
 	}
 	
