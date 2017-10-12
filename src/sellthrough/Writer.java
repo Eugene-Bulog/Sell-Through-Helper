@@ -121,5 +121,24 @@ public class Writer {
 		
 	}
 	
+	/**
+	 * Updates the sales figures for the sku in the specified sheet if it can be found.
+	 * @param sku The sku to update
+	 * @param sheetIndex The index of the sheet to update the sku on
+	 * @return True if the sku was found and updated, otherwise false
+	 */
+	private boolean updateSKU(SKU sku, int sheetIndex) {
+		XSSFSheet sheet = _outBook.getSheetAt(sheetIndex);
+		
+		for (Row row : sheet) {
+			if (row.getCell(0).getStringCellValue().equals(sku.getCode())) {
+				row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
+				row.createCell(2).setCellValue(sku.getSOH());
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 }
