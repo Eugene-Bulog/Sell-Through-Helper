@@ -24,6 +24,7 @@ public class Writer {
 	private FileInputStream _fis;
 	private int _latestCol = 4;
 	private XSSFWorkbook _outBook;
+	private String _date = "placeholder";
 	
 	/**
 	 * Constructor for Writer class
@@ -53,6 +54,9 @@ public class Writer {
 			_outBook = new XSSFWorkbook(_fis);
 			XSSFSheet summarySheet = _outBook.getSheetAt(0);
 			
+			// Finds column for this week, and titles it
+			_latestCol = summarySheet.getRow(0).getLastCellNum() + 1;
+			summarySheet.getRow(0).createCell(_latestCol).setCellValue(_date);
 			
 			// saves values for each sku
 			for (int i = 0; i < _skuList.size(); i++) {
