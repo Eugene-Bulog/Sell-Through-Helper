@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -59,9 +60,41 @@ public class Writer {
 			summarySheet.getRow(0).createCell(_latestCol).setCellValue(_date);
 			
 			// saves values for each sku
+			Scanner scanner = new Scanner(System.in);
+			
 			for (int i = 0; i < _skuList.size(); i++) {
-				addSkuToSheet(_skuList.get(i),0);
+				
+				// Check if this sku is already saved or not
+				if (!updateSKU(_skuList.get(i),0)) {
+					// If it isn't saved, save it to summary
+					addSkuToSheet(_skuList.get(i),0);
+					
+					
+					// Create or find the non-summary sheet this is not on
+					System.out.println("What category does " + _skuList.get(i).getDescription() + " go in?");
+					String category = scanner.nextLine();
+					
+					
+					int findSheet = _outBook.getSheetIndex(category);
+					
+					if (findSheet == -1) {
+						findSheet = setUpSheet(category);
+					}
+					
+					addSkuToSheet(_skuList.get(i),findSheet);
+					
+				}
+				else {
+					// if it exists, find the other sheet it's on, and update it there too
+					for (int j = 1; j < _outBook.getNumberOfSheets(); j++) {
+						if (updateSKU(_skuList.get(i),j)) {
+							break;
+						}
+					}
+				}
 			}
+			
+			scanner.close();
 			
 			// write and close
 			FileOutputStream outStream = new FileOutputStream(_outFile);
@@ -97,6 +130,7 @@ public class Writer {
 			titleRow.createCell(0).setCellValue("SKU");
 			titleRow.createCell(1).setCellValue("Product Description");
 			titleRow.createCell(2).setCellValue("SOH");
+			titleRow.createCell(_latestCol).setCellValue(_date);
 			
 			return sheetIndex;
 		
@@ -109,15 +143,15 @@ public class Writer {
 	 */
 	private void addSkuToSheet(SKU sku, int sheetIndex) {
 		
-		// Get sheet index and last row
-		XSSFSheet sheet = _outBook.getSheetAt(sheetIndex);
-		Row row = sheet.createRow(sheet.getLastRowNum() + 1);
-		
-		// Appends SKU to sheet
-		row.createCell(0).setCellValue(sku.getCode());
-		row.createCell(1).setCellValue(sku.getDescription());
-		row.createCell(2).setCellValue(sku.getSOH());
-		row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
+			XSSFSheet sheet = _outBook.getSheetAt(sheetIndex);
+			Row row = sheet.createRow(sheet.getLastRowNum() + 1);
+			
+			// Appends SKU to sheet
+			row.createCell(0).setCellValue(sku.getCode());
+			row.createCell(1).setCellValue(sku.getDescription());
+			row.createCell(2).setCellValue(sku.getSOH());
+			row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
+
 		
 	}
 	
@@ -130,6 +164,12 @@ public class Writer {
 	private boolean updateSKU(SKU sku, int sheetIndex) {
 		XSSFSheet sheet = _outBook.getSheetAt(sheetIndex);
 		
+		// Sets date column
+		if (sheet.getRow(0) != null) {
+			sheet.getRow(0).createCell(_latestCol).setCellValue(_date);
+		}
+		
+		
 		for (Row row : sheet) {
 			if (row.getCell(0).getStringCellValue().equals(sku.getCode())) {
 				row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
@@ -137,6 +177,9 @@ public class Writer {
 				return true;
 			}
 		}
+		
+
+		
 		
 		return false;
 	}
