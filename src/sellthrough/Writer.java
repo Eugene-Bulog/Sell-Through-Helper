@@ -25,7 +25,7 @@ public class Writer {
 	private FileInputStream _fis;
 	private int _latestCol = 4;
 	private XSSFWorkbook _outBook;
-	private String _date = "placeholder";
+	private String _date;
 	
 	/**
 	 * Constructor for Writer class
@@ -62,6 +62,10 @@ public class Writer {
 			// saves values for each sku
 			Scanner scanner = new Scanner(System.in);
 			
+			// Ask the user for the date of this sell through
+			System.out.println("Please enter the date (remember this reseller is usually a week behind): ");
+			_date = scanner.nextLine();
+			
 			for (int i = 0; i < _skuList.size(); i++) {
 				
 				// Check if this sku is already saved or not
@@ -95,6 +99,9 @@ public class Writer {
 			}
 			
 			scanner.close();
+			
+			
+			
 			
 			// write and close
 			FileOutputStream outStream = new FileOutputStream(_outFile);
@@ -131,6 +138,14 @@ public class Writer {
 			titleRow.createCell(1).setCellValue("Product Description");
 			titleRow.createCell(2).setCellValue("SOH");
 			titleRow.createCell(_latestCol).setCellValue(_date);
+			
+			// Set up sum and space rows
+			sheet.createRow(1);
+			Row sumRow = sheet.createRow(2);
+			sheet.createRow(3);
+			
+			sumRow.createCell(0).setCellValue("Totals");
+			
 			
 			return sheetIndex;
 		
@@ -171,11 +186,17 @@ public class Writer {
 		
 		
 		for (Row row : sheet) {
-			if (row.getCell(0).getStringCellValue().equals(sku.getCode())) {
-				row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
-				row.createCell(2).setCellValue(sku.getSOH());
-				return true;
+			try {
+				if (row.getCell(0).getStringCellValue().equals(sku.getCode())) {
+					row.createCell(_latestCol).setCellValue(sku.getWk1Sold());
+					row.createCell(2).setCellValue(sku.getSOH());
+					return true;
+				}
 			}
+			catch (Exception e) {
+				// empty catch
+			}
+			
 		}
 		
 

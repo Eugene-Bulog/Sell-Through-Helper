@@ -15,7 +15,6 @@ public class Reader {
 	// Strings containing the paths to the sheets
 	private String _weeklyPath;
 	private String _outPath;
-	
 	private List<SKU> _skuList = new ArrayList<SKU>();
 
 	/**
@@ -25,6 +24,7 @@ public class Reader {
 	public Reader(String weeklyPath, String outPath) {
 		_weeklyPath = weeklyPath;
 		_outPath = outPath;
+	
 	}
 
 
